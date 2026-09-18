@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Carve &amp; Curve — Business Suite</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#3F0D0C">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Carve & Curve">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Outfit:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="toast" id="toast" aria-live="polite"></div>
+<div class="sidebar-backdrop no-print" id="sidebar-backdrop"></div>
+
+<!-- LOGIN SCREEN -->
+<div class="auth-screen no-print" id="auth-screen">
+  <form class="auth-card" id="auth-form">
+    <span class="brand-name auth-brand-name">Carve &amp; Curve</span>
+    <span class="brand-tag auth-brand-tag">Business Suite</span>
+    <p class="auth-tag">Sign in to continue</p>
+    <div class="field">
+      <label for="auth-email">Email</label>
+      <input type="email" id="auth-email" autocomplete="username" required>
+    </div>
+    <div class="field">
+      <label for="auth-password">Password</label>
+      <input type="password" id="auth-password" autocomplete="current-password" required>
+    </div>
+    <p class="auth-error" id="auth-error" hidden></p>
+    <button type="submit" class="btn btn-gold auth-submit" id="auth-submit">Sign In</button>
+  </form>
+</div>
+
+<div class="app-shell" id="app-shell" style="display:none">
+
+  <aside class="sidebar no-print" id="sidebar">
+    <a href="#dashboard" class="brand">
+      <span class="brand-name">Carve &amp; Curve</span>
+      <span class="brand-tag">Business Suite</span>
+    </a>
+    <nav class="side-nav" id="main-nav">
+      <a href="#dashboard" data-route="dashboard">Dashboard</a>
+      <div class="nav-group">Sales</div>
+      <a href="#quotations" data-route="quotations">Quotations</a>
+      <a href="#invoices" data-route="invoices">Invoices</a>
+      <a href="#payments" data-route="payments">Payments</a>
+      <a href="#delivery-challans" data-route="delivery-challans">Delivery Challan</a>
+      <a href="#clients" data-route="clients">Clients</a>
+      <div class="nav-group">Purchases</div>
+      <a href="#purchase-orders" data-route="purchase-orders">Purchase Orders</a>
+      <a href="#expenses" data-route="expenses">Expenses</a>
+      <a href="#vendors" data-route="vendors">Vendors</a>
+      <div class="nav-group">General</div>
+      <a href="#items" data-route="items">Items</a>
+      <a href="#reports" data-route="reports">Reports</a>
+      <a href="#settings" data-route="settings">Settings</a>
+    </nav>
+    <button type="button" class="sidebar-logout no-print" id="btn-logout">Log Out</button>
+  </aside>
+
+  <div class="main-col">
+    <header class="topbar no-print">
+      <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button>
+      <span class="topbar-title">Carve &amp; Curve</span>
+    </header>
+
+    <main class="app-main">
+
+      <!-- DASHBOARD -->
+      <section class="view" id="view-dashboard">
+        <div class="view-header"><div><p class="eyebrow">Overview</p><h1>Dashboard</h1></div></div>
+        <div class="stat-grid" id="dashboard-stats"></div>
+        <div class="panel">
+          <div class="panel-header"><h2>Recent Invoices</h2><a href="#invoices" class="link-more">View all →</a></div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Number</th><th>Client</th><th>Date</th><th class="num">Total</th><th>Status</th></tr></thead>
+              <tbody id="dashboard-invoices-tbody"></tbody>
+            </table>
+          </div>
+          <div class="empty-state" id="dashboard-invoices-empty" hidden><p>No invoices yet.</p></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><h2>Outstanding Receivables</h2><a href="#reports" class="link-more">Full report →</a></div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Invoice</th><th>Client</th><th>Due</th><th class="num">Balance</th></tr></thead>
+              <tbody id="dashboard-receivables-tbody"></tbody>
+            </table>
+          </div>
+          <div class="empty-state" id="dashboard-receivables-empty" hidden><p>Nothing outstanding.</p></div>
+        </div>
+      </section>
+
+      <!-- ITEMS -->
+      <section class="view" id="view-items">
+        <div class="view-header">
+          <div><p class="eyebrow">Catalog</p><h1>Items</h1></div>
+          <button class="btn btn-gold" id="btn-add-item">+ Add Item</button>
+        </div>
+        <div class="filter-row">
+          <input type="search" id="items-search" placeholder="Search by name, description, HSN…">
+          <select id="items-sort-field">
+            <option value="name">Sort: Name</option>
+            <option value="cost">Sort: Cost</option>
+          </select>
+          <button type="button" class="btn btn-outline btn-sm sort-dir-btn" id="items-sort-dir" data-dir="asc">↑ Asc</button>
+        </div>
+        <div class="panel">
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Name</th><th>Description</th><th>Unit</th><th class="num">Rate (₹)</th><th class="num">GST %</th><th></th></tr></thead>
+              <tbody id="items-tbody"></tbody>
+            </table>
+          </div>
+          <div class="empty-state" id="items-empty" hidden><p>No items yet.</p><button class="btn btn-gold" id="btn-add-item-empty">Add your first product</button></div>
+        </div>
+      </section>
+
+      <!-- CLIENTS -->
+      <section class="view" id="view-clients">
+        <div class="view-header">
+          <div><p class="eyebrow">Contacts</p><h1>Clients</h1></div>
+          <button class="btn btn-gold" id="btn-add-client">+ Add Client</button>
+        </div>
+        <div class="filter-row">
+          <input type="search" id="clients-search" placeholder="Search by name, company, phone…">
+          <button type="button" class="btn btn-outline btn-sm sort-dir-btn" id="clients-sort-dir" data-dir="asc">↑ Name A-Z</button>
+        </div>
+        <div class="panel">
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Name</th><th>Company</th><th>Phone</th><th>State</th><th></th></tr></thead>
+              <tbody id="clients-tbody"></tbody>
+            </table>
+          </div>
+          <div class="empty-state" id="clients-empty" hidden><p>No clients yet.</p><button class="btn btn-gold" id="btn-add-client-empty">Add your first client</button></div>
+        </div>
+      </section>
+
+      <!-- VENDORS -->
+      <section class="view" id="view-vendors">
+        <div class="view-header">
+          <div><p class="eyebrow">Suppliers</p><h1>Vendors</h1></div>
+          <button class="btn btn-gold" id="btn-add-vendor">+ Add Vendor</button>
+        </div>
+        <div class="filter-row">
+          <input type="search" id="vendors-search" placeholder="Search by name, company, phone…">
+          <button type="button" class="btn btn-outline btn-sm sort-dir-btn" id="vendors-sort-dir" data-dir="asc">↑ Name A-Z</button>
+        </div>
+        <div class="panel">
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Name</th><th>Company</th><th>Phone</th><th>State</th><th></th></tr></thead>
+              <tbody id="vendors-tbody"></tbody>
+            </table>
+          </div>
+          <div class="empty-state" id="vendors-empty" hidden><p>No vendors yet.</p><button class="btn btn-gold" id="btn-add-vendor-empty">Add your first vendor</button></div>
+        </div>
+      </section>
+
+      <!-- QUOTATION FORM -->
+      <section class="view" id="view-quotation-form">
+        <div class="view-header"><div><p class="eyebrow" id="qf-eyebrow">New</p><h1 id="qf-title">Quotation</h1></div></div>
+        <form id="quotation-form" novalidate>
+          <div class="panel">
+            <div class="form-grid">
+              <div class="field"><label for="qf-number">Quotation #</label><input type="text" id="qf-number" required></div>
+              <div class="field"><label for="qf-date">Date</label><input type="date" id="qf-date" required></div>
+              <div class="field"><label for="qf-validuntil">Valid Until</label><input type="date" id="qf-validuntil" required></div>
+              <div class="field"><label for="qf-reference">Reference # <span class="optional">(optional)</span></label><input type="text" id="qf-reference"></div>
+              <div class="field field-wide"><label for="qf-client">Client</label>
+                <div class="input-with-action"><select id="qf-client" required></select><button type="button" class="btn btn-outline btn-sm" id="btn-quick-add-client">+ New</button></div>
+              </div>
+              <div class="field"><label for="qf-taxtype">Tax Type</label>
+                <select id="qf-taxtype"><option value="intra">CGST + SGST (Tamil Nadu)</option><option value="inter">IGST (other states)</option></select>
+              </div>
+              <div class="field field-wide"><label for="qf-subject">Subject <span class="optional">(optional)</span></label><input type="text" id="qf-subject" placeholder="e.g., Acoustic panels — living room"></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><h2>Line Items</h2><button type="button" class="btn btn-outline btn-sm" id="btn-add-line">+ Add Line</button></div>
+            <div class="table-wrap">
+              <table class="data-table line-items-table">
+                <thead><tr><th class="col-item">Item</th><th class="col-qty">Qty</th><th class="col-unit">Unit</th><th class="col-rate num">Rate ₹</th><th class="col-disc num">Disc %</th><th class="col-tax num">GST %</th><th class="col-amount num">Amount ₹</th><th class="col-del"></th></tr></thead>
+                <tbody id="qf-lines-tbody"></tbody>
+              </table>
+            </div>
+            <div class="empty-state" id="qf-lines-empty"><p>No line items yet.</p></div>
+          </div>
+          <div class="panel">
+            <div class="form-grid">
+              <div class="field field-wide"><label for="qf-notes">Notes <span class="optional">(optional)</span></label><textarea id="qf-notes" rows="3"></textarea></div>
+              <div class="field field-wide"><label for="qf-terms">Terms &amp; Conditions</label><textarea id="qf-terms" rows="5"></textarea></div>
+            </div>
+          </div>
+          <div class="totals-card" id="qf-totals"></div>
+          <div class="form-actions">
+            <a href="#quotations" class="btn btn-text">Cancel</a>
+            <button type="button" class="btn btn-outline" id="btn-save-draft">Save as Draft</button>
+            <button type="submit" class="btn btn-gold" id="btn-save-send">Save &amp; Mark Sent</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- QUOTATIONS LIST -->
+      <section class="view" id="view-quotations">
+        <div class="view-header">
+          <div><p class="eyebrow">All</p><h1>Quotations</h1></div>
+          <a href="#quotation-form/new" class="btn btn-gold">+ New Quotation</a>
+        </div>
+        <div class="filter-row">
+          <select id="qlist-status-filter">
+            <option value="">All statuses</option>
+            <option value="Draft">Draft</option><option value="Sent">Sent</option>
+            <option value="Accepted">Accepted</option><option value="Declined">Declined</option><option value="Expired">Expired</option>
+          </select>
+          <input type="search" id="qlist-search" placeholder="Search by client or number…">
+          <select id="qlist-sort-field">
+            <option value="date">Sort: Date</option>
+            <option value="number">Sort: Number</option>
+            <option value="client">Sort: Client</option>
+            <option value="cost">Sort: Total</option>
+          </select>
+          <button type="button" class="btn btn-outline btn-sm sort-dir-btn" id="qlist-sort-dir" data-dir="desc">↓ Desc</button>
+        </div>
+        <div class="panel">
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Number</th><th>Client</th><th>Date</th><th>Valid Until</th><th class="num">Total</th><th>Status</th><th></th></tr></thead>
+              <tbody id="quotations-tbody"></tbody>
+            </table>
+          </div>
+          <div class="empty-state" id="quotations-empty" hidden><p>No quotations match.</p></div>
+        </div>
+      </section>
+
+      <!-- QUOTATION VIEW / PRINT -->
+      <section class="view" id="view-quotation-view">
+        <div class="view-header no-print">
+          <div><p class="eyebrow">Quotation</p><h1 id="qv-heading">View</h1></div>
+          <div class="header-actions-inline">
+            <a href="#quotations" class="btn btn-text">← Back</a>
+            <button class="btn btn-outline" id="btn-edit-quotation">Edit</button>
+            <button class="btn btn-outline" id="btn-convert-invoice">Convert to Invoice</button>
+            <button class="btn btn-gold" id="btn-print-quotation">Print / Save PDF</button>
+          </div>
+        </div>
+        <div class="status-bar no-print" id="qv-status-bar"></div>
+        <div class="print-doc" id="print-doc"></div>
+      </section>
+
+      <!-- INVOICE FORM -->
+      <section class="view" id="view-invoice-form">
+        <div class="view-header"><div><p class="eyebrow" id="if-eyebrow">New</p><h1 id="if-title">Invoice</h1></div></div>
+        <form id="invoice-form" novalidate>
+          <div class="panel">
+            <p class="panel-note" id="if-source-note" hidden></p>
+            <div class="form-grid">
+              <div class="field"><label for="if-number">Invoice #</label><input type="text" id="if-number" required></div>
+              <div class="field"><label for="if-date">Date</label><input type="date" id="if-date" required></div>
+              <div class="field"><label for="if-duedate">Due Date</label><input type="date" id="if-duedate" required></div>
+              <div class="field"><label for="if-reference">Reference # <span class="optional">(optional)</span></label><input type="text" id="if-reference"></div>
+              <div class="field field-wide"><label for="if-client">Client</label>
+                <div class="input-with-action"><select id="if-client" required></select><button type="button" class="btn btn-outline btn-sm" id="btn-quick-add-client-inv">+ New</button></div>
+              </div>
+              <div class="field"><label for="if-taxtype">Tax Type</label>
+                <select id="if-taxtype"><option value="intra">CGST + SGST (Tamil Nadu)</option><option value="inter">IGST (other states)</option></select>
+              </div>
+              <div class="field field-wide"><label for="if-subject">Subject <span class="optional">(optional)</span></label><input type="text" id="if-subject"></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><h2>Line Items</h2><button type="button" class="btn btn-outline btn-sm" id="btn-add-line-inv">+ Add Line</button></div>
+            <div class="table-wrap">
+              <table class="data-table line-items-table">
+                <thead><tr><th class="col-item">Item</th><th class="col-qty">Qty</th><th class="col-unit">Unit</th><th class="col-rate num">Rate ₹</th><th class="col-disc num">Disc %</th><th class="col-tax num">GST %</th><th class="col-amount num">Amount ₹</th><th class="col-del"></th></tr></thead>
+                <tbody id="if-lines-tbody"></tbody>
+              </table>
+            </div>
+            <div class="empty-state" id="if-lines-empty"><p>No line items yet.</p></div>
+          </div>
+          <div class="panel">
+            <div class="form-grid">
+              <div class="field field-wide"><label for="if-notes">Notes <span class="optional">(optional)</span></label><textarea id="if-notes" rows="3"></textarea></div>
+              <div class="field field-wide"><label for="if-terms">Terms &amp; Conditions</label><textarea id="if-terms" rows="5"></textarea></div>
+            </div>
+          </div>
+          <div class="totals-card" id="if-totals"></div>
+          <div class="form-actions">
+            <a href="#invoices" class="btn btn-text">Cancel</a>
+            <button type="button" class="btn btn-outline" id="btn-save-draft-inv">Save as Draft</button>
+            <button type="submit" class="btn btn-gold" id="btn-save-send-inv">Save &amp; Mark Sent</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- INVOICES LIST -->
+      <section class="view" id="view-invoices">
+        <div class="view-header">
+          <div><p class="eyebrow">All</p><h1>Invoices</h1></div>
+          <a href="#invoice-form/new" class="btn btn-gold">+ New Invoice</a>
+        </div>
+        <div class="filter-row">
+          <select id="ilist-status-filter">
+            <option value="">All statuses</option>
+            <option value="Draft">Draft</option><option value="Sent">Sent</option>
+            <option value="Partially Paid">Partially Paid</option><option value="Paid">Paid</option>
+            <option value="Overdue">Overdue</option><option value="Cancelled">Cancelled</option>
+          </select>
+          <input type="search" id="ilist-search" placeholder="Search by client or number…">
+          <select id="ilist-sort-field">
+            <option value="date">Sort: Date</option>
+            <option value="number">Sort: Number</option>
+            <option value="client">Sort: Client</option>
+            <option value="cost">Sort: Total</option>
+          </select>
+          <button type="button" class="btn btn-outline btn-sm sort-dir-btn" id="ilist-sort-dir" data-dir="desc">↓ Desc</button>
+        </div>
+        <div class="panel">
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Number</th><th>Client</th><th>Date</th><th>Due</th><th class="num">Total</th><th class="num">Balance</th><th>Status</th><th></th></tr></thead>
+              <tbody id="invoices-tbody"></tbody>
+            </table>
+          </div>
+          <div class="empty-state" id="invoices-empty" hidden><p>No invoices match.</p></div>
+        </div>
+      </section>
+
+      <!-- INVOICE VIEW / PRINT -->
+      <section class="view" id="view-invoice-view">
+        <div class="view-header no-print">
+          <div><p class="eyebrow">Invoice</p><h1 id="iv-heading">View</h1></div>
+          <div class="header-actions-inline">
+            <a href="#invoices" class="btn btn-text">← Back</a>
+            <button class="btn btn-outline" id="btn-edit-invoice">Edit</button>
+            <button class="btn btn-outline" id="btn-record-payment-from-view">Record Payment</button>
+            <button class="btn btn-outline" id="btn-create-dc-from-invoice">Create Delivery Challan</button>
+            <button class="btn btn-gold" id="btn-print-invoice">Print / Save PDF</button>
+          </div>
+        </div>
+        <div class="status-bar no-print" id="iv-status-bar"></div>
+        <div class="panel no-print" id="iv-payments-panel"></div>
+        <div class="print-doc" id="invoice-print-doc"></div>
+      </section>
+
+      <!-- PAYMENTS -->
+      <section class="view" id="view-payments">
+        <div class="view-header">
+          <div><p class="eyebrow">Received</p><h1>Payments</h1></div>
+          <button class="btn btn-gold" id="btn-record-payment">+ Record Payment</button>
+        </div>
+        <div class="filter-row">
+          <input type="search" id="payments-search" placeholder="Search by client or invoice #…">
+          <select id="payments-sort-field">
+            <option value="date">Sort: Date</option>
+            <option value="client">Sort: Client</option>
+            <option value="cost">Sort: Amount</option>
+          </select>
+          <button type="button" class="btn btn-outline btn-sm sort-dir-btn" id="payments-sort-dir" data-dir="desc">↓ Desc</button>
+        </div>
+        <div class="panel">
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Date</th><th>Invoice #</th><th>Client</th><th class="num">Amount</th><th>Method</th><th>Notes</th><th></th></tr></thead>
+              <tbody id="payments-tbody"></tbody>
+            </table>
+          </div>
+          <div class="empty-state" id="payments-empty" hidden><p>No payments recorded yet.</p></div>
+        </div>
+      </section>
+
+      <!-- DELIVERY CHALLAN FORM -->
+      <section class="view" id="view-dc-form">
+        <div class="view-header"><div><p class="eyebrow" id="df-eyebrow">New</p><h1 id="df-title">Delivery Challan</h1></div></div>
+        <form id="dc-form" novalidate>
+          <div class="panel">
+            <p class="panel-note" id="df-source-note" hidden></p>
+            <div class="form-grid">
+              <div class="field"><label for="df-number">Challan #</label><input type="text" id="df-number" required></div>
+              <div class="field"><label for="df-date">Date</label><input type="date" id="df-date" required></div>
+              <div class="field"><label for="df-vehicle">Vehicle Number <span class="optional">(optional)</span></label><input type="text" id="df-vehicle" placeholder="e.g., TN 01 AB 1234"></div>
+              <div class="field"><label for="df-transport">Transport Mode <span class="optional">(optional)</span></label><input type="text" id="df-transport" placeholder="e.g., By Road / Courier"></div>
+              <div class="field field-wide"><label for="df-client">Client</label>
+                <div class="input-with-action"><select id="df-client" required></select><button type="button" class="btn btn-outline btn-sm" id="btn-quick-add-client-dc">+ New</button></div>
+              </div>
+              <div class="field"><label for="df-reference">Reference # <span class="optional">(optional)</span></label><input type="text" id="df-reference"></div>
+              <div class="field field-wide"><label for="df-subject">Subject <span class="optional">(optional)</span></label><input type="text" id="df-subject"></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><h2>Line Items</h2><button type="button" class="btn btn-outline btn-sm" id="btn-add-line-dc">+ Add Line</button></div>
+            <div class="table-wrap">
+              <table class="data-table line-items-table">
+                <thead><tr><th class="col-item">Item</th><th class="col-qty">Qty</th><th class="col-unit">Unit</th><th class="col-rate num">Rate ₹</th><th class="col-disc num">Disc %</th><th class="col-tax num">GST %</th><th class="col-amount num">Amount ₹</th><th class="col-del"></th></tr></thead>
+                <tbody id="df-lines-tbody"></tbody>
+              </table>
+            </div>
+            <div class="empty-state" id="df-lines-empty"><p>No line items yet.</p></div>
+          </div>
+          <div class="panel">
+            <div class="form-grid">
+              <div class="field field-wide"><label for="df-notes">Notes <span class="optional">(optional)</span></label><textarea id="df-notes" rows="3"></textarea></div>
+              <div class="field field-wide"><label for="df-terms">Terms &amp; Conditions</label><textarea id="df-terms" rows="4"></textarea></div>
+            </div>
+          </div>
+          <div class="totals-card" id="df-totals"></div>
+          <div class="form-actions">
+            <a href="#delivery-challans" class="btn btn-text">Cancel</a>
+            <button type="button" class="btn btn-outline" id="btn-save-draft-dc">Save as Draft</button>
+            <button type="submit" class="btn btn-gold" id="btn-save-send-dc">Save &amp; Mark Dispatched</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- DELIVERY CHALLANS LIST -->
+      <section class="view" id="view-delivery-challans">
+        <div class="view-header">
+          <div><p class="eyebrow">All</p><h1>Delivery Challans</h1></div>
+          <a href="#dc-form/new" class="btn btn-gold">+ New Challan</a>
+        </div>
+        <div class="filter-row">
+          <select id="dclist-status-filter">
+            <option value="">All statuses</option>
+            <option value="Draft">Draft</option><option value="Dispatched">Dispatched</option><option value="Delivered">Delivered</option>
+          </select>
+          <input type="search" id="dclist-search" placeholder="Search by client or number…">
+          <select id="dclist-sort-field">
+            <option value="date">Sort: Date</option>
+            <option value="number">Sort: Number</option>
+            <option value="client">Sort: Client</option>
+            <option value="cost">Sort: Value</option>
+          </select>
+          <button type="button" class="btn btn-outline btn-sm sort-dir-btn" id="dclist-sort-dir" data-dir="desc">↓ Desc</button>
+        </div>
+        <div class="panel">
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Number</th><th>Client</th><th>Date</th><th>Vehicle</th><th class="num">Value</th><th>Status</th><th></th></tr></thead>
+              <tbody id="dcs-tbody"></tbody>
+            </table>
+          </div>
+          <div class="empty-state" id="dcs-empty" hidden><p>No delivery challans match.</p></div>
+        </div>
+      </section>
+
+      <!-- DELIVERY CHALLAN VIEW / PRINT -->
+      <section class="view" id="view-dc-view">
+        <div class="view-header no-print">
+          <div><p class="eyebrow">Delivery Challan</p><h1 id="dv-heading">View</h1></div>
+          <div class="header-actions-inline">
+            <a href="#delivery-challans" class="btn btn-text">← Back</a>
+            <button class="btn btn-outline" id="btn-edit-dc">Edit</button>
+            <button class="btn btn-gold" id="btn-print-dc">Print / Save PDF</button>
+          </div>
+        </div>
+        <div class="status-bar no-print" id="dv-status-bar"></div>
+        <div class="print-doc" id="dc-print-doc"></div>
+      </section>
+
+      <!-- PO FORM -->
+      <section class="view" id="view-po-form">
+        <div class="view-header"><div><p class="eyebrow" id="pf-eyebrow">New</p><h1 id="pf-title">Purchase Order</h1></div></div>
+        <form id="po-form" novalidate>
+          <div class="panel">
+            <div class="form-grid">
+              <div class="field"><label for="pf-number">PO #</label><input type="text" id="pf-number" required></div>
+              <div class="field"><label for="pf-date">Date</label><input type="date" id="pf-date" required></div>
+              <div class="field"><label for="pf-expected">Expected Date <span class="optional">(optional)</span></label><input type="date" id="pf-expected"></div>
+              <div class="field"><label for="pf-reference">Reference # <span class="optional">(optional)</span></label><input type="text" id="pf-reference"></div>
+              <div class="field field-wide"><label for="pf-vendor">Vendor</label>
+                <div class="input-with-action"><select id="pf-vendor" required></select><button type="button" class="btn btn-outline btn-sm" id="btn-quick-add-vendor">+ New</button></div>
+              </div>
+              <div class="field"><label for="pf-taxtype">Tax Type</label><select id="pf-taxtype"><option value="intra">CGST + SGST (Tamil Nadu)</option><option value="inter">IGST (other states)</option></select></div>
+              <div class="field field-wide"><label for="pf-subject">Subject <span class="optional">(optional)</span></label><input type="text" id="pf-subject"></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><h2>Line Items</h2><button type="button" class="btn btn-outline btn-sm" id="btn-add-line-po">+ Add Line</button></div>
+            <div class="table-wrap">
+              <table class="data-table line-items-table">
+                <thead><tr><th class="col-item">Item / Material</th><th class="col-qty">Qty</th><th class="col-unit">Unit</th><th class="col-rate num">Rate ₹</th><th class="col-disc num">Disc %</th><th class="col-tax num">GST %</th><th class="col-amount num">Amount ₹</th><th class="col-del"></th></tr></thead>
+                <tbody id="pf-lines-tbody"></tbody>
+              </table>
+            </div>
+            <div class="empty-state" id="pf-lines-empty"><p>No line items yet.</p></div>
+          </div>
+          <div class="panel">
+            <div class="form-grid">
+              <div class="field field-wide"><label for="pf-notes">Notes <span class="optional">(optional)</span></label><textarea id="pf-notes" rows="3"></textarea></div>
+              <div class="field field-wide"><label for="pf-terms">Terms &amp; Conditions</label><textarea id="pf-terms" rows="5"></textarea></div>
+            </div>
+          </div>
+          <div class="totals-card" id="pf-totals"></div>
+          <div class="form-actions">
+            <a href="#purchase-orders" class="btn btn-text">Cancel</a>
+            <button type="button" class="btn btn-outline" id="btn-save-draft-po">Save as Draft</button>
+            <button type="submit" class="btn btn-gold" id="btn-save-send-po">Save &amp; Mark Sent</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- PURCHASE ORDERS LIST -->
+      <section class="view" id="view-purchase-orders">
+        <div class="view-header">
+          <div><p class="eyebrow">All</p><h1>Purchase Orders</h1></div>
+          <a href="#po-form/new" class="btn btn-gold">+ New PO</a>
+        </div>
+        <div class="filter-row">
+          <select id="polist-status-filter">
+            <option value="">All statuses</option>
+            <option value="Draft">Draft</option><option value="Sent">Sent</option>
+            <option value="Received">Received</option><option value="Cancelled">Cancelled</option>
+          </select>
+          <input type="search" id="polist-search" placeholder="Search by vendor or number…">
+          <select id="polist-sort-field">
+            <option value="date">Sort: Date</option>
+            <option value="number">Sort: Number</option>
+            <option value="client">Sort: Vendor</option>
+            <option value="cost">Sort: Total</option>
+          </select>
+          <button type="button" class="btn btn-outline btn-sm sort-dir-btn" id="polist-sort-dir" data-dir="desc">↓ Desc</button>
+        </div>
+        <div class="panel">
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Number</th><th>Vendor</th><th>Date</th><th>Expected</th><th class="num">Total</th><th>Status</th><th></th></tr></thead>
+              <tbody id="pos-tbody"></tbody>
+            </table>
+          </div>
+          <div class="empty-state" id="pos-empty" hidden><p>No purchase orders match.</p></div>
+        </div>
+      </section>
+
+      <!-- PO VIEW / PRINT -->
+      <section class="view" id="view-po-view">
+        <div class="view-header no-print">
+          <div><p class="eyebrow">Purchase Order</p><h1 id="pv-heading">View</h1></div>
+          <div class="header-actions-inline">
+            <a href="#purchase-orders" class="btn btn-text">← Back</a>
+            <button class="btn btn-outline" id="btn-edit-po">Edit</button>
+            <button class="btn btn-gold" id="btn-print-po">Print / Save PDF</button>
+          </div>
+        </div>
+        <div class="status-bar no-print" id="pv-status-bar"></div>
+        <div class="print-doc" id="po-print-doc"></div>
+      </section>
+
+      <!-- EXPENSES -->
+      <section class="view" id="view-expenses">
+        <div class="view-header">
+          <div><p class="eyebrow">Costs</p><h1>Expenses</h1></div>
+          <button class="btn btn-gold" id="btn-add-expense">+ Add Expense</button>
+        </div>
+        <div class="filter-row">
+          <select id="elist-category-filter"><option value="">All categories</option></select>
+          <input type="search" id="elist-search" placeholder="Search description or vendor…">
+          <select id="elist-sort-field">
+            <option value="date">Sort: Date</option>
+            <option value="client">Sort: Category</option>
+            <option value="cost">Sort: Amount</option>
+          </select>
+          <button type="button" class="btn btn-outline btn-sm sort-dir-btn" id="elist-sort-dir" data-dir="desc">↓ Desc</button>
+        </div>
+        <div class="panel">
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Date</th><th>Category</th><th>Vendor</th><th>Description</th><th class="num">Amount</th><th></th></tr></thead>
+              <tbody id="expenses-tbody"></tbody>
+            </table>
+          </div>
+          <div class="empty-state" id="expenses-empty" hidden><p>No expenses logged yet.</p></div>
+        </div>
+      </section>
+
+      <!-- REPORTS -->
+      <section class="view" id="view-reports">
+        <div class="view-header"><div><p class="eyebrow">Insights</p><h1>Reports</h1></div></div>
+        <div class="filter-row">
+          <button type="button" class="btn btn-outline btn-sm" id="rpt-range-month">This Month</button>
+          <button type="button" class="btn btn-outline btn-sm" id="rpt-range-year">This Year</button>
+          <button type="button" class="btn btn-outline btn-sm" id="rpt-range-all">All Time</button>
+          <input type="date" id="rpt-from">
+          <input type="date" id="rpt-to">
+        </div>
+        <div class="stat-grid" id="reports-stats"></div>
+        <div class="panel">
+          <div class="panel-header"><h2>Outstanding Receivables</h2></div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Invoice</th><th>Client</th><th>Due</th><th class="num">Balance</th><th></th></tr></thead>
+              <tbody id="rpt-receivables-tbody"></tbody>
+            </table>
+          </div>
+          <div class="empty-state" id="rpt-receivables-empty" hidden><p>Nothing outstanding in this range.</p></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><h2>Sales by Client</h2></div>
+          <div id="rpt-by-client"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><h2>Expenses by Category</h2></div>
+          <div id="rpt-by-category"></div>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section class="view" id="view-settings">
+        <div class="view-header"><div><p class="eyebrow">Configure</p><h1>Settings</h1></div></div>
+        <form id="settings-form">
+          <div class="panel">
+            <div class="panel-header"><h2>Business Details</h2></div>
+            <div class="form-grid">
+              <div class="field"><label for="set-name">Business Name</label><input id="set-name"></div>
+              <div class="field"><label for="set-tagline">Tagline</label><input id="set-tagline"></div>
+              <div class="field field-wide"><label for="set-address">Address</label><input id="set-address"></div>
+              <div class="field"><label for="set-state">State</label><select id="set-state"></select></div>
+              <div class="field"><label for="set-phone">Phone / WhatsApp</label><input id="set-phone"></div>
+              <div class="field"><label for="set-email">Email</label><input id="set-email"></div>
+              <div class="field"><label for="set-instagram">Instagram</label><input id="set-instagram"></div>
+              <div class="field"><label for="set-gstin">GSTIN <span class="optional">(optional)</span></label><input id="set-gstin"></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><h2>Quotation Defaults</h2></div>
+            <div class="form-grid">
+              <div class="field"><label for="set-prefix">Number Prefix</label><input id="set-prefix"></div>
+              <div class="field"><label for="set-nextnum">Next Number</label><input type="number" id="set-nextnum" min="1"></div>
+              <div class="field"><label for="set-validity">Default Validity (days)</label><input type="number" id="set-validity" min="1"></div>
+              <div class="field field-wide"><label for="set-terms">Default Terms &amp; Conditions</label><textarea id="set-terms" rows="5"></textarea></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><h2>Invoice Defaults</h2></div>
+            <div class="form-grid">
+              <div class="field"><label for="set-inv-prefix">Number Prefix</label><input id="set-inv-prefix"></div>
+              <div class="field"><label for="set-inv-nextnum">Next Number</label><input type="number" id="set-inv-nextnum" min="1"></div>
+              <div class="field"><label for="set-inv-duedays">Default Due (days)</label><input type="number" id="set-inv-duedays" min="1"></div>
+              <div class="field field-wide"><label for="set-inv-terms">Default Terms &amp; Conditions</label><textarea id="set-inv-terms" rows="5"></textarea></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><h2>Purchase Order Defaults</h2></div>
+            <div class="form-grid">
+              <div class="field"><label for="set-po-prefix">Number Prefix</label><input id="set-po-prefix"></div>
+              <div class="field"><label for="set-po-nextnum">Next Number</label><input type="number" id="set-po-nextnum" min="1"></div>
+              <div class="field field-wide"><label for="set-po-terms">Default Terms &amp; Conditions</label><textarea id="set-po-terms" rows="5"></textarea></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><h2>Delivery Challan Defaults</h2></div>
+            <div class="form-grid">
+              <div class="field"><label for="set-dc-prefix">Number Prefix</label><input id="set-dc-prefix"></div>
+              <div class="field"><label for="set-dc-nextnum">Next Number</label><input type="number" id="set-dc-nextnum" min="1"></div>
+              <div class="field field-wide"><label for="set-dc-terms">Default Terms &amp; Conditions</label><textarea id="set-dc-terms" rows="4"></textarea></div>
+            </div>
+          </div>
+          <div class="form-actions"><button type="submit" class="btn btn-gold">Save Settings</button></div>
+        </form>
+        <div class="panel">
+          <div class="panel-header"><h2>Data Backup</h2></div>
+          <p class="panel-note">Your data lives in Supabase and is shared by every authorized team member signed in to this business. A read-only copy is cached in this browser for fast loading and offline viewing.</p>
+          <div class="form-actions form-actions-left">
+            <button class="btn btn-outline" id="btn-export">Export Backup (.json)</button>
+            <label class="btn btn-outline" for="import-file">Import Backup</label>
+            <input type="file" id="import-file" accept="application/json" hidden>
+          </div>
+        </div>
+        <div class="panel panel-danger">
+          <div class="panel-header"><h2>Danger Zone</h2></div>
+          <p class="panel-note">This permanently deletes everything — items, clients, vendors, quotations, invoices, payments, purchase orders and expenses — in this browser. Export a backup first.</p>
+          <button class="btn btn-danger" id="btn-clear-data">Clear All Data</button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<div class="modal-backdrop no-print" id="modal-backdrop">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="script.js"></script>
+<script>
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('./sw.js').catch(function(){ /* offline support unavailable; app still works online */ });
+    });
+  }
+</script>
+</body>
+</html>
