@@ -2,7 +2,8 @@
    Carve & Curve — Business Suite
    Data lives in Supabase (shared by every authorized team member of this
    business) and is mirrored into localStorage as a fast/offline read cache.
-   See supabase-config.js for connection settings.
+   See supabase-config.js for connection settings and SETUP.md for the
+   one-time Supabase project setup.
    ========================================================================== */
 
 /* ---------- Constants ---------- */
@@ -1144,7 +1145,7 @@ let qfState = null;
 
 function nextQuotationNumberPreview(){
   const n = state.settings.nextQuotationNumber || 1;
-  return (state.settings.quotationPrefix || 'CC-QT-') + String(n);
+  return (state.settings.quotationPrefix || 'CC-QT-') + String(n).padStart(4, '0');
 }
 
 function blankLine(){
@@ -1357,6 +1358,8 @@ async function saveQuotation(status){
   }
   const isNew = !qfState.id;
   const payload = linesPayload(qfState.lines);
+  const btn = $('#btn-save-draft');
+  if(btn) btn.disabled = true;
   let res;
   if(isNew){
     res = await supabaseClient.rpc('create_quotation', {
@@ -1375,6 +1378,7 @@ async function saveQuotation(status){
       p_lines: payload,
     });
   }
+  if(btn) btn.disabled = false;
   if(res.error){ showToast('Could not save quotation: ' + res.error.message); return; }
   const saved = await fetchQuotationById(res.data.id);
   const idx = state.quotations.findIndex(function(q){ return q.id === saved.id; });
@@ -1469,11 +1473,10 @@ function documentPrintHtml(opts){
   const adjustment = Number(doc.adjustment) || 0;
   const finalTotal = t.grandTotal + adjustment;
 
-  /* Per-line tax is shown as one combined column (full rate + full amount) so
-     Description gets the room — CGST/SGST only get split out once, in the
-     totals box at the bottom, same as most invoicing platforms do it. */
-  const taxHeadCells = '<th class="num" colspan="2">' + (isInter ? 'IGST' : 'GST') + '</th>';
-  const taxSubCells = '<th class="num">%</th><th class="num">Amt</th>';
+  const taxHeadCells = isInter ? '<th class="num" colspan="2">IGST</th>' : '<th class="num" colspan="2">CGST</th><th class="num" colspan="2">SGST</th>';
+  const taxSubCells = isInter
+    ? '<th class="num">%</th><th class="num">Amt</th>'
+    : '<th class="num">%</th><th class="num">Amt</th><th class="num">%</th><th class="num">Amt</th>';
 
   const linesHtml = doc.lines.map(function(l, idx){
     const nm = l.name || (l.itemId && itemById(l.itemId) ? itemById(l.itemId).name : 'Item');
@@ -1481,7 +1484,10 @@ function documentPrintHtml(opts){
     const sizeInfo = isSqft ? ('<div class="item-size">(' + (l.widthFt || 0) + "' \u00D7 " + (l.heightFt || 0) + "')</div>") : '';
     const qtyDisplay = l.qty + ' ' + escapeHtml(l.unit || '');
     const lineTax = lineAmount(l) * clampPct(l.taxRate) / 100;
-    const taxCells = '<td class="num">' + clampPct(l.taxRate) + '%</td><td class="num">' + formatNumber(lineTax) + '</td>';
+    const taxCells = isInter
+      ? '<td class="num">' + clampPct(l.taxRate) + '%</td><td class="num">' + formatNumber(lineTax) + '</td>'
+      : '<td class="num">' + (clampPct(l.taxRate) / 2) + '%</td><td class="num">' + formatNumber(lineTax / 2) + '</td>'
+        + '<td class="num">' + (clampPct(l.taxRate) / 2) + '%</td><td class="num">' + formatNumber(lineTax / 2) + '</td>';
     return '<tr><td class="num">' + (idx + 1) + '</td>'
       + '<td>' + escapeHtml(nm) + sizeInfo + (l.description ? '<div class="item-desc">' + escapeHtml(l.description) + '</div>' : '') + '</td>'
       + '<td>' + escapeHtml(l.hsn || '') + '</td>'
@@ -1521,7 +1527,9 @@ function documentPrintHtml(opts){
 
   if(doc.subject) html += '<div class="pd-subject">' + escapeHtml(doc.subject) + '</div>';
 
-  const colgroup = '<colgroup><col style="width:3%"><col style="width:38%"><col style="width:8%"><col style="width:10%"><col style="width:11%"><col style="width:5%"><col style="width:11%"><col style="width:14%"></colgroup>';
+  const colgroup = isInter
+    ? '<colgroup><col style="width:3%"><col style="width:40%"><col style="width:9%"><col style="width:8%"><col style="width:10%"><col style="width:6%"><col style="width:10%"><col style="width:14%"></colgroup>'
+    : '<colgroup><col style="width:3%"><col style="width:34%"><col style="width:8%"><col style="width:7%"><col style="width:9%"><col style="width:5%"><col style="width:8%"><col style="width:5%"><col style="width:8%"><col style="width:13%"></colgroup>';
 
   html += '<table class="pd-table">' + colgroup + '<thead>'
     + '<tr><th class="pd-col-num">#</th><th>Item &amp; Description</th><th class="pd-col-hsn">HSN/SAC</th><th class="pd-col-qty num">Qty</th><th class="pd-col-rate num">Rate</th>' + taxHeadCells + '<th class="pd-col-amount num">Amount</th></tr>'
@@ -1609,7 +1617,7 @@ let ifState = null;
 
 function nextInvoiceNumberPreview(){
   const n = state.settings.nextInvoiceNumber || 1;
-  return (state.settings.invoicePrefix || 'CC-INV-') + String(n);
+  return (state.settings.invoicePrefix || 'CC-INV-') + String(n).padStart(4, '0');
 }
 
 function renderInvoiceForm(param){
@@ -1717,6 +1725,8 @@ async function saveInvoice(status){
   }
   const isNew = !ifState.id;
   const payload = linesPayload(ifState.lines);
+  const btn = $('#btn-save-draft-inv');
+  if(btn) btn.disabled = true;
   let res;
   if(isNew){
     res = await supabaseClient.rpc('create_invoice', {
@@ -1734,6 +1744,7 @@ async function saveInvoice(status){
       p_status: effectiveStatus, p_adjustment: Number(ifState.adjustment) || 0, p_lines: payload,
     });
   }
+  if(btn) btn.disabled = false;
   if(res.error){ showToast('Could not save invoice: ' + res.error.message); return; }
   const saved = await fetchInvoiceById(res.data.id);
   const idx = state.invoices.findIndex(function(i){ return i.id === saved.id; });
@@ -1985,7 +1996,7 @@ let dfState = null;
 
 function nextDcNumberPreview(){
   const n = state.settings.nextDcNumber || 1;
-  return (state.settings.dcPrefix || 'CC-DC-') + String(n);
+  return (state.settings.dcPrefix || 'CC-DC-') + String(n).padStart(4, '0');
 }
 
 function renderDcForm(param){
@@ -2245,7 +2256,7 @@ function deliveryChallanPrintHtml(dc){
 
   if(dc.subject) html += '<div class="pd-subject">' + escapeHtml(dc.subject) + '</div>';
 
-  html += '<table class="pd-table"><colgroup><col style="width:3%"><col style="width:54%"><col style="width:8%"><col style="width:10%"><col style="width:11%"><col style="width:14%"></colgroup><thead><tr><th class="pd-col-num">#</th><th>Item &amp; Description</th><th class="pd-col-hsn">HSN/SAC</th><th class="pd-col-qty num">Qty</th><th class="pd-col-rate num">Rate</th><th class="pd-col-amount num">Value</th></tr></thead><tbody>' + linesHtml + '</tbody></table>';
+  html += '<table class="pd-table"><colgroup><col style="width:4%"><col style="width:46%"><col style="width:12%"><col style="width:10%"><col style="width:12%"><col style="width:16%"></colgroup><thead><tr><th class="pd-col-num">#</th><th>Item &amp; Description</th><th class="pd-col-hsn">HSN/SAC</th><th class="pd-col-qty num">Qty</th><th class="pd-col-rate num">Rate</th><th class="pd-col-amount num">Value</th></tr></thead><tbody>' + linesHtml + '</tbody></table>';
 
   html += '<div class="pd-bottom"><div class="pd-bottom-left">';
   if(dc.notes) html += '<div class="pd-notes"><strong>Notes</strong><br>' + escapeHtml(dc.notes) + '</div>';
@@ -2302,7 +2313,7 @@ let pfState = null;
 
 function nextPoNumberPreview(){
   const n = state.settings.nextPoNumber || 1;
-  return (state.settings.poPrefix || 'CC-PO-') + String(n);
+  return (state.settings.poPrefix || 'CC-PO-') + String(n).padStart(4, '0');
 }
 
 function renderPoForm(param){
